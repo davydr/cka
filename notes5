@@ -1,0 +1,163 @@
+### Notes on Kubernetes Version Upgrade (CKA Question)
+
+#### Key Points:
+1. **High Probability Question**:
+   - Upgrading a Kubernetes cluster is a critical question in the Certified Kubernetes Administrator (CKA) exam.
+   - Ensure familiarity with the process as versions in the exam may vary.
+
+2. **Scenario**:
+   - Upgrade the **control plane** and **worker node** from version `1.18` to `1.19`.
+   - Drain both nodes before the upgrade.
+   - Make nodes schedulable again after the upgrade.
+
+---
+
+### **Steps to Upgrade Kubernetes Cluster**
+
+#### **Step 1: Drain the Node**
+- Evict all pods from the node to prepare for the upgrade:
+  ```bash
+  kubectl drain <node-name> --ignore-daemonsets
+  ```
+- Example:
+  ```bash
+  kubectl drain control-plane --ignore-daemonsets
+  kubectl drain node01 --ignore-daemonsets
+  ```
+
+---
+
+#### **Step 2: Upgrade the Control Plane**
+1. **Update the Package Index**:
+   ```bash
+   apt-get update
+   ```
+
+2. **Install the Desired Version of `kubeadm`**:
+   ```bash
+   apt-get install -y kubeadm=1.19.0-00
+   ```
+
+3. **Verify Upgrade Plan**:
+   ```bash
+   kubeadm upgrade plan
+   ```
+
+4. **Apply the Upgrade**:
+   ```bash
+   kubeadm upgrade apply v1.19.0
+   ```
+
+5. **Upgrade `kubelet`**:
+   - Install the required version:
+     ```bash
+     apt-get install -y kubelet=1.19.0-00
+     ```
+   - Restart the `kubelet` service:
+     ```bash
+     systemctl restart kubelet
+     ```
+
+6. **Uncordon the Control Plane**:
+   ```bash
+   kubectl uncordon control-plane
+   ```
+
+---
+
+#### **Step 3: Upgrade the Worker Node**
+1. **SSH into the Worker Node**:
+   ```bash
+   ssh node01
+   ```
+
+2. **Update the Package Index**:
+   ```bash
+   apt-get update
+   ```
+
+3. **Install the Desired Version of `kubeadm`**:
+   ```bash
+   apt-get install -y kubeadm=1.19.0-00
+   ```
+
+4. **Upgrade the Worker Node**:
+   ```bash
+   kubeadm upgrade node
+   ```
+
+5. **Upgrade `kubelet`**:
+   - Install the required version:
+     ```bash
+     apt-get install -y kubelet=1.19.0-00
+     ```
+   - Restart the `kubelet` service:
+     ```bash
+     systemctl restart kubelet
+     ```
+
+6. **Exit the Worker Node**:
+   ```bash
+   exit
+   ```
+
+7. **Uncordon the Worker Node**:
+   ```bash
+   kubectl uncordon node01
+   ```
+
+---
+
+### **Commands Summary**
+- **Drain Nodes**:
+  ```bash
+  kubectl drain <node-name> --ignore-daemonsets
+  ```
+
+- **Install/Upgrade Packages**:
+  ```bash
+  apt-get update
+  apt-get install -y kubeadm=<version> kubelet=<version>
+  systemctl restart kubelet
+  ```
+
+- **Control Plane Upgrade**:
+  ```bash
+  kubeadm upgrade apply v<version>
+  ```
+
+- **Worker Node Upgrade**:
+  ```bash
+  kubeadm upgrade node
+  ```
+
+- **Uncordon Nodes**:
+  ```bash
+  kubectl uncordon <node-name>
+  ```
+
+---
+
+### **Verification**
+1. Check node statuses:
+   ```bash
+   kubectl get nodes
+   ```
+2. Confirm all nodes are in the `Ready` state and upgraded to the desired version.
+
+---
+
+### **Best Practices**
+- **Hands-On Practice**:
+  - Install a Kubernetes cluster using `kubeadm` and practice upgrading it to a newer version.
+- **Documentation**:
+  - Refer to Kubernetes documentation for version-specific upgrade guides.
+- **Cheat Sheet**:
+  - Use a cheat sheet for quick access to commands during the exam.
+
+---
+
+### **Key Takeaways**
+- Master the Kubernetes cluster upgrade process, including draining and uncordoning nodes.
+- Practice version upgrades to build confidence.
+- This question carries significant weight in the CKA exam, so prioritize its preparation.
